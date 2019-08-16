@@ -2,7 +2,7 @@
 import os
 
 DELAY = 60  # Delay between site queries
-EMAIL_INTERVAL = 1800  # Delay between alert emails
+ALERT_INTERVAL = 1800  # Delay between alert emails
 
 # Login email and password for account sending alerts
 EMAIL_USERNAME = "username@gmail.com"
