@@ -1,15 +1,12 @@
 #!/usr/bin/env python
 from __future__ import unicode_literals
 from time import sleep, time, strftime
-import requests
+import urllib.request
 import io
 import smtplib
 import sys
-from smtp_config import sender, password, receivers, host, port
+from config import DELAY, EMAIL_INTERVAL, EMAIL_HOST, EMAIL_PORT, EMAIL_USERNAME, EMAIL_PASSWORD, EMAIL_RECEIVERS
 
-
-DELAY = 60  # Delay between site queries
-EMAIL_INTERVAL = 1800  # Delay between alert emails
 
 last_email_time = {}  # Monitored sites and timestamp of last alert sent
 
@@ -56,13 +53,15 @@ def send_alert(site, status):
     """If more than EMAIL_INTERVAL seconds since last email, resend email"""
     if (time() - last_email_time[site]) > EMAIL_INTERVAL:
         try:
-            smtpObj = smtplib.SMTP(host, port)  # Set up SMTP object
+            # Set up SMTP object
+            smtpObj = smtplib.SMTP(EMAIL_HOST, EMAIL_PORT)
             smtpObj.starttls()
-            smtpObj.login(sender, password)
-            smtpObj.sendmail(sender,
-                             receivers,
-                             MESSAGE.format(sender=sender,
-                                            receivers=", ".join(receivers),
+            smtpObj.login(EMAIL_USERNAME, EMAIL_PASSWORD)
+            smtpObj.sendmail(EMAIL_USERNAME,
+                             EMAIL_RECEIVERS,
+                             MESSAGE.format(sender=EMAIL_USERNAME,
+                                            receivers=", ".join(
+                                                EMAIL_RECEIVERS),
                                             site=site,
                                             status=status
                                             )
@@ -70,15 +69,12 @@ def send_alert(site, status):
             last_email_time[site] = time()  # Update time of last email
             print(colorize("Successfully sent email", "green"))
         except smtplib.SMTPException:
-            print(colorize("Error sending email ({}:{})".format(host, port), "red"))
+            print(colorize("Error sending email ({}:{})".format(
+                EMAIL_HOST, EMAIL_PORT), "red"))
 
 
 def ping(site):
     """Send GET request to input site and return status code"""
-    # resp = requests.get(site)
-    # return resp.status_code
-
-    import urllib.request
     try:
         resp = urllib.request.urlopen(site, timeout=5)
         return resp.getcode()
@@ -119,10 +115,7 @@ def main():
         try:
             for site in sites:
                 status = ping(site)
-                if status == 200:
-                    print("\b" + colorize(".", "green"),
-                          sys.stdout.flush())
-                else:
+                if status != 200:
                     error_log(site, status)
                     send_alert(site, status)
             sleep(DELAY)
