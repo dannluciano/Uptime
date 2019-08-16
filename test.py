@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 from monitor import main, get_sites, ping, error_log, colorize, last_email_time
-import pytest
 import sys
 import io
 
@@ -18,7 +17,8 @@ def test_colorize():
 
 def test_error_log(capsys):
     error_log("http://www.example.com", 404)
-    log = [site.strip() for site in io.open('monitor.log', mode='r').readlines()]
+    log = [site.strip() for site in io.open(
+        'monitor.log', mode='r').readlines()]
     out, err = capsys.readouterr()
     assert "http://www.example.com STATUS: \033[93m404" in out
     assert "http://www.example.com STATUS: 404" in " ".join(log)
@@ -32,3 +32,11 @@ def test_ping_valid():
 def test_ping_invalid(capsys):
     status = ping("http://www.jwarren.co/somefakesite")
     assert status == 404
+
+
+if __name__ == "__main__":
+    test_get_sites()
+    test_colorize()
+    # test_error_log()
+    test_ping_valid()
+    # test_ping_invalid()
