@@ -5,6 +5,7 @@ import urllib.request
 import io
 import smtplib
 import sys
+import socket
 from config import DELAY, ALERT_INTERVAL, EMAIL_HOST, EMAIL_PORT, EMAIL_USERNAME, EMAIL_PASSWORD, EMAIL_RECEIVERS, PUSH_USER_KEY, PUSH_USER_TOKEN
 
 
@@ -75,6 +76,8 @@ def send_email(site, status):
     except smtplib.SMTPException:
         print(colorize("Error sending email ({}:{})".format(
             EMAIL_HOST, EMAIL_PORT), "red"))
+    except socket.gaierror:
+        print(colorize("Error in DNS Resolution", "red"))
 
 
 def send_push_notification(site, status):
@@ -102,6 +105,11 @@ def ping(site):
         return resp.getcode()
     except urllib.error.URLError as error:
         return 500
+    except socket.timeout as error:
+        return 408
+    except socket.gaierror as error:
+        print(colorize("Error in DNS Resolution", "red"))
+        return 0
 
 
 def get_sites():
@@ -138,8 +146,10 @@ def main():
             for site in sites:
                 status = ping(site)
                 if status != 200:
-                    error_log(site, status)
-                    send_alert(site, status)
+                    status = ping(site)
+                    if status != 200:
+                        error_log(site, status)
+                        send_alert(site, status)
             sleep(DELAY)
         except KeyboardInterrupt:
             print(colorize("\n-- Monitoring canceled --", "red"))
