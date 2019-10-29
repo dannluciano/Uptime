@@ -101,7 +101,7 @@ def send_push_notification(site, status):
 def ping(site):
     """Send GET request to input site and return status code"""
     try:
-        resp = urllib.request.urlopen(site, timeout=5)
+        resp = urllib.request.urlopen(site, timeout=10)
         return resp.getcode()
     except urllib.error.URLError as error:
         return 500
