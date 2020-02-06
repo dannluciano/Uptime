@@ -14,3 +14,6 @@ EMAIL_PORT = 587
 
 # Recipients that will get alert
 EMAIL_RECEIVERS = ["username@gmail.com"]
+
+PUSH_USER_KEY = 'user'
+PUSH_USER_TOKEN = 'token'

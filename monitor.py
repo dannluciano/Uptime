@@ -78,6 +78,8 @@ def send_email(site, status):
             EMAIL_HOST, EMAIL_PORT), "red"))
     except socket.gaierror:
         print(colorize("Error in DNS Resolution", "red"))
+    except socket.timeout:
+        print(colorize("Socket Timeout!", "red"))
 
 
 def send_push_notification(site, status):
@@ -146,10 +148,16 @@ def main():
             for site in sites:
                 status = ping(site)
                 if status != 200:
+                    print(colorize("Ping Failed! Trying again.", "red"))
                     status = ping(site)
                     if status != 200:
-                        error_log(site, status)
-                        send_alert(site, status)
+                        print(colorize("Ping Failed! Trying again. After a sleep", "red"))
+                        sleep(DELAY/10)
+                        status = ping(site)
+                        if status != 200:
+                            print(colorize("Ping Failed after three times! Sending alerts...", "red"))
+                            error_log(site, status)
+                            send_alert(site, status)
             sleep(DELAY)
         except KeyboardInterrupt:
             print(colorize("\n-- Monitoring canceled --", "red"))
